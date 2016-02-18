@@ -1,44 +1,49 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistry;
+import org.hibernate.service.ServiceRegistryBuilder;
+
+
 public class Main {
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet  rset= null;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
- 
-// THIS IS WHERE IT ALL DIES ON ME
-    conn =  DriverManager
-    		.getConnection("jdbc:mysql://localhost:3306/ormdb","root", "14789632");
- 
-			String query = "SELECT * from Producto";
- 
-			stmt = conn.createStatement();
-			
-			rset = stmt.executeQuery(query);
-		}
-		catch (SQLException se) {
-			System.out.println("SQLError: " + se.getMessage() + " code: " + se.getErrorCode());
-		}
-		catch(Exception e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				rset.close();
-				stmt.close();
-				conn.close();
-			}catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
 
+    public static void main(String[] args) {
+        SessionFactory sessionFactory;
+
+        Configuration configuration = new Configuration();
+        configuration.configure();
+        ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().applySettings(configuration.getProperties()).buildServiceRegistry();
+        sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+        
+        Cliente cliente = new Cliente(1,"Brandon", "Quiroz Rodriguez","95847856");
+        
+        Session session=sessionFactory.openSession();
+        
+        session.beginTransaction();
+        session.save(cliente);
+        session.getTransaction().commit();
+        
+        
+        Cliente profesor2=(Cliente)session.get(Cliente.class,101);
+        System.out.println(profesor2.getId());
+        System.out.println(profesor2.getNombre());
+        System.out.println(profesor2.getApellidos());
+       // System.out.println(profesor2.getApe2());        
+        
+        profesor2.setNombre("Emilio");
+        
+        session.beginTransaction();
+        session.update(profesor2);
+        session.getTransaction().commit();        
+
+        session.beginTransaction();
+       // session.delete(profesor2);
+        session.getTransaction().commit(); 
+        
+        
+        session.close();
+        sessionFactory.close();
+    }
 }
